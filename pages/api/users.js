@@ -11,7 +11,24 @@ export default async function handler(req, res) {
       isInitialized = true;
     } catch (error) {
       console.error('Database initialization error:', error);
-      return res.status(500).json({ error: 'Database initialization failed' });
+      
+      // 安全的错误信息返回策略
+      const errorResponse = {
+        status: 'error',
+        code: 'DB_INIT_FAILED',
+        message: 'Database initialization failed',
+      };
+      
+      // 仅在开发环境返回详细错误信息
+      if (process.env.NODE_ENV !== 'production') {
+        errorResponse.details = {
+          error: error.message,
+          code: error.code,
+          stack: error.stack?.split('\n').slice(0, 3) // 只返回前3行堆栈
+        };
+      }
+      
+      return res.status(500).json(errorResponse);
     }
   }
 
